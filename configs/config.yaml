@@ -1,0 +1,100 @@
+data:
+  input_1:
+    channel: 2
+    image_size: [25, 25]  # era5 (4, 20, 25, 25)
+  input_2:
+    channel: 1
+    image_size: [140, 140]  # satellite (4, 1, 140, 140)
+  time_series:
+    channel: 1
+  batch_size: 1
+  history_length: 1
+  prediction_length: 1
+
+model:
+  feature_pyramid:
+    # conv params:
+    conv_1:
+      in_channels: 2
+      out_channels: 2
+      kernel_size: 7
+      stride: 1
+      padding: 3
+    conv_2:
+      in_channels: 1
+      out_channels: 1
+      kernel_size: 7
+      stride: 1
+      padding: 3
+    conv_3:
+      in_channels: 2  # 9 = 8+1
+      out_channels: 2  # 9 = 8+1
+      kernel_size: 3
+      stride: 1
+      padding: 1
+  # resnet params:
+    resnet_1:
+      conv_params: [6, 1, 0]
+      dim: 2
+      dim_out:
+    resnet_2:
+      conv_params: [3, 1, 1]
+      dim: 1
+      dim_out:
+    resnet_3:
+      conv_params: [3, 2, 1]
+      dim: 1
+      dim_out:
+    resnet_4:
+      conv_params: [3, 2, 1]
+      dim: 1
+      dim_out:
+    # feature_fuser_type
+    upsampler:
+      scale_factor: 2
+      mode: 'nearest'
+    # patching
+    patching:
+      token:
+        embed_dim: 8
+    patching_layer_1:
+      img_size: 20
+      in_chans: 2  # 9 = 8+ 1
+      embed_dim: 8
+      patch_size: 5
+    patching_layer_2:
+      img_size: 70
+      in_chans: 8 # 9 = 8+ 1
+      embed_dim: 8
+      patch_size: 5
+    patching_layer_3:
+      img_size: 140
+      in_chans: 8 # 9 = 8+ 1
+      embed_dim: 8
+      patch_size: 5
+    patching_layer_4:
+      img_size: 140
+      in_chans: 8 # 9 = 8+ 1
+      embed_dim: 8
+      patch_size: 5
+
+  feature_fuser_type: 'cross-attention'
+  cross-attention:
+    num_q_channels: 8
+    num_kv_channels: 8  # = num_token
+    num_heads: 1
+    hidden_dim: 16
+    is_causal: True
+  self-attention:
+    num_channels: 8
+    num_head: 1
+
+  decoder:
+    num_layers: 1
+    dropout_rate: 0.0
+    cross-attention:
+      num_q_channels: 8
+      num_kv_channels: 8
+      num_heads: 1
+      hidden_dim: 8
+
